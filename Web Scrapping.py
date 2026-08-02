@@ -28,7 +28,7 @@ while True:
         break 
 
 # Displaying the data
-print("------------------------------------")
+print("="*30)
 print(f"A total of {len(extracted_data)} observations were extracted")
 df = pd.DataFrame(extracted_data)
 print(df.head())
