@@ -2,33 +2,33 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 
-
-# Prueba usando la pagina web "Quotes to Scrape"
+# Using the "Quotes to Scrape" website
 url = 'https://quotes.toscrape.com'
-url_actual = url + '/'
-datos_extraidos = []
-numero_pagina = 1
+current_url = url + '/'
+extracted_data = []
+num_page = 1
 
+# Extracting the information
 while True:
-    print(f"Scrapeando página {numero_pagina}...")
-    respuesta = requests.get(url_actual)
-    soup = BeautifulSoup(respuesta.text, 'html.parser')
-    contenedores = soup.find_all('div', class_='quote')
-    for caja in contenedores:
-        frase = caja.find('span', class_='text').text
-        autor = caja.find('small', class_='author').text
-        datos_extraidos.append({'Frase':frase, 'Autor':autor})
-    
-    boton_next = soup.find('li', class_='next')
-    if boton_next:
-        enlace_relativo = boton_next.find('a')['href']
-        url_actual = url + enlace_relativo
-        numero_pagina += 1
+    print(f"Scraping page {num_page}...")
+    response = requests.get(current_url)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    containers = soup.find_all('div', class_='quote')
+    for box in containers:
+        phrase = box.find('span', class_='text').text
+        author = box.find('small', class_='author').text
+        extracted_data.append({'phrase':phrase, 'author':author})
+    next_button = soup.find('li', class_='next')
+    if next_button:
+        relative_link = next_button.find('a')['href']
+        url_current = url + relative_link
+        num_page += 1
     else:
-        print("No hay mas paginas")
-        break #Corto el bucle while
+        print("There are no more pages")
+        break 
 
+# Displaying the data
 print("------------------------------------")
-print(f"Se extrajeron un total de {len(datos_extraidos)}")
-df = pd.DataFrame(datos_extraidos)
+print(f"A total of {len(extracted_data)} observations were extracted")
+df = pd.DataFrame(extracted_data)
 print(df.head())
