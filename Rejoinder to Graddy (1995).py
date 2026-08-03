@@ -1,9 +1,9 @@
-import pandas as pd
 import numpy as np
 import statsmodels.formula.api as smf
 import matplotlib.pyplot as plt
 import statsmodels.api as sm
 from linearmodels.iv import IV2SLS
+import wooldridge as woo
 
 
 
@@ -14,9 +14,8 @@ price discrimination. As a result, she was able to demonstrate such discriminati
 """
 
 # Open dataset
-fish = pd.read_stata(r"C:\Users\HP\Downloads\Industrial Organization Estimates\Bases de datos\fish_stata.dta")
-print(fish.describe())
-print("------------------------------------")
+fish = woo.data('fish')
+print(fish.shape)
 
 # Observe that fishing takes place from Monday to Friday (closed Saturdays and Sundays); 
 # dummy variables define the days.
@@ -87,3 +86,19 @@ mod_w = IV2SLS(fish['lqtyw'], fish[['mon','tues','wed','thurs','const']], fish[[
 reg_w = mod_w.fit(cov_type='kernel', kernel='bartlett')
 print(reg_w)
 print("------------------------------------")
+
+
+
+"""
+The dataset used (fish from Wooldridge) is a daily-aggregated version that 
+averages prices and consolidates total quantities traded per day. 
+
+The original paper by Graddy (1995) relies on a micro-transactional dataset, where 
+the unit of observation is the individual sale negotiated with each buyer.
+
+Because daily averaging eliminates intra-day variation, it is not possible to test for third-degree price 
+discrimination (which requires evaluating individual transaction prices against buyer demographics). 
+
+What was successfully estimated via IV (2SLS)—using weather variables as supply instruments—was the daily aggregate 
+price elasticity of demand for each group, showing that both segments respond similarly to supply shocks.
+"""
