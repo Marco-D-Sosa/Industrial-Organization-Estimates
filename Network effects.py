@@ -1,39 +1,46 @@
 import pandas as pd
 import numpy as np
 import statsmodels.formula.api as smf
+import kagglehub
+
+
 
 """
-La base de datos fue descargada de Kaggle, llamada Video games Sale.
-Al no contar con informacion sobre ventas de consolas, se utiliza las ventas de juegos por plataformas como proxy 
-(Mientras mas consolas se venden, mas juegos se compran con dicha consola)
-Problema con esta proxy: 
-las ventas de juegos pueden ser mayores por ese mayor repertorio, sin que se traduzca en ventas de consolas.
-El efecto de red podria sobreestimarse
+First estimate of network effects in the console market.
+Dataset: Video Game Sales (sourced from Kaggle).
+
+In the absence of data on console sales, game sales by platform are used as a proxy (since the more consoles sold, the more 
+games are purchased for them). The problem with this proxy is that game sales may be higher due to a larger library 
+without necessarily translating into higher console sales; consequently, the network effect could be overestimated.
+
+Note: Ensure you have your Kaggle API Token configured in your environment
+or local directory so kagglehub can authenticate automatically.
 """
 
+# 1. Open dataset
+path = kagglehub.dataset_download("gregorut/videogamesales")
+df_raw = pd.read_csv(f"{path}/vgsales.csv")
 
-"1. Preparo la base de datos"
-df_raw = pd.read_csv('vgsales.csv')
+# 2. Set up the panel
 df_raw['Year'] = pd.to_numeric(df_raw['Year'],errors='coerce')
 df = df_raw.dropna(subset=['Year']).copy()
 df['Year'] = df['Year'].astype(int)
-panel = df.groupby(['Platform','Year']).agg(ventas_globales=('Global_Sales', 'sum'), nuevos_juegos=('Name', 'count')).reset_index()
+panel = df.groupby(['Platform','Year']).agg(Global_Sales=('Global_Sales', 'sum'), New_Games=('Name', 'count')).reset_index()
 panel = panel.sort_values(by=['Platform','Year'])
-panel['catalogo_acumulado'] = panel.groupby('Platform')['nuevos_juegos'].cumsum()
-panel = panel[ (panel['ventas_globales']>0) & (panel['catalogo_acumulado']>0) ].copy()
-panel['ln_ventas'] = np.log(panel['ventas_globales'])
-panel['ln_red'] = np.log(panel['catalogo_acumulado'])
-print(panel[panel['Platform'] == 'PS2'] [['Year','nuevos_juegos','catalogo_acumulado','ventas_globales']].head())
+panel['cumulative_catalog'] = panel.groupby('Platform')['New_Games'].cumsum()
+panel = panel[ (panel['Global_Sales']>0) & (panel['cumulative_catalog']>0) ].copy()
+panel['ln_sales'] = np.log(panel['Global_Sales'])
+panel['ln_network'] = np.log(panel['cumulative_catalog'])
+print(panel[panel['Platform'] == 'PS2'] [['Year','New_Games','cumulative_catalog','Global_Sales']].head())
 print("="*60)
 
-
-"2. Estimacion del efecto red"
-#Modelo: log(ventas) = log(red) + FE por plataforma
-modelo = smf.ols('ln_ventas ~ ln_red + C(Platform)', data=panel).fit(cov_type='HC1')
-print("Resultados: elasticidad del efecto de red")
+# 3. Estimation of the network effect
+#Model: log(sales) = log(network) + FE per platform
+model = smf.ols('ln_sales ~ ln_network + C(Platform)', data=panel).fit(cov_type='HC1')
+print("Results: elasticity of the network effect")
 print("="*60)
-print(modelo.summary())
+print(model.summary())
 print("="*60)
-elasticidad_red = modelo.params['ln_red']
-print(f"Elasticidad de red: {elasticidad_red:.3f}")
+elasticity_network = model.params['ln_network']
+print(f"Elasticity of the network: {elasticity_network:.4f}")
 print("="*60)
