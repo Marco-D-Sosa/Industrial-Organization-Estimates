@@ -4,68 +4,72 @@ from sklearn.neighbors import BallTree
 import folium
 import webbrowser
 import os
+import kagglehub
 
 
 """
-Analisis de competencia espacial y definicion de mercados geograficos relevantes"
-Base de datos: Starbucks Locations Worldwide (sacada de Kaggle)
+Analysis of spatial competition and definition of relevant geographic markets.
+Dataset: Starbucks Locations Worldwide (sourced from Kaggle).
+
+Note: Ensure you have your Kaggle API Token configured in your environment
+or local directory so kagglehub can authenticate automatically.
 """
 
-
-# 1. Carga de datos espaciales
-df_espacial = pd.read_csv(r"C:\Users\HP\Documents\Org industrial\startbucks.csv")
-df_espacial = df_espacial.dropna(subset=['latitude','longitude']).copy()
-df_la = df_espacial[df_espacial['city']=='Los Angeles'].copy().reset_index(drop=True)
+# 1. Spatial data loading
+path = kagglehub.dataset_download("kukuroo3/starbucks-locations-worldwide-2021-version")
+df_spatial = pd.read_csv(f"{path}/startbucks.csv")
+df_spatial = df_spatial.dropna(subset=['latitude','longitude']).copy()
+df_la = df_spatial[df_spatial['city']=='Los Angeles'].copy().reset_index(drop=True)
 df_la['lat_rad'] = np.radians(df_la['latitude'])
 df_la['lon_rad'] = np.radians(df_la['longitude'])
 
-# 2. Calculo del HHI
-radio_tierra_km = 6371.0
-radio_mercado_km = 5.0
-radio_rad = radio_mercado_km / radio_tierra_km
-arbol = BallTree(df_la[['lat_rad','lon_rad']], metric='haversine')
-indices_vecinos = arbol.query_radius(df_la[['lat_rad','lon_rad']], r=radio_rad)
-df_la['competidores_5km'] = [len(vecinos) for vecinos in indices_vecinos]
-df_la['hhi_local'] = 10000 / df_la['competidores_5km'] #se asume cuotas simetricas de mercado
+# 2. Calculation of the HHI
+earth_radius_km =  6371.0
+market_radius_km = 5.0
+radius_rad = market_radius_km / earth_radius_km
+tree = BallTree(df_la[['lat_rad','lon_rad']], metric='haversine')
+index_neighbors = tree.query_radius(df_la[['lat_rad','lon_rad']], r=radius_rad)
+df_la['competitors_5km'] = [len(neighbors) for neighbors in index_neighbors]
+df_la['hhi_local'] = 10000 / df_la['competitors_5km'] # Symmetric market shares are assumed.
 
-# 3. Diagnostico
-print("DIAGNOSTICO ESPACIAL: AREA DE CAPTACION (LOS ANGELES)")
+# 3. Diagnosis
+print("Spatial analysis: catchment area (Los Angeles)")
 print("="*60)
-locales_aislados = df_la.sort_values('competidores_5km').head(5)
-print("Top 5 locales mas aislados:")
-print(locales_aislados[['storeNumber','competidores_5km','hhi_local']])
+isolated_stores = df_la.sort_values('competitors_5km').head(5)
+print("Top 5 most isolated stores:")
+print(isolated_stores[['storeNumber','competitors_5km','hhi_local']])
 print("="*60)
-locales_densos = df_la.sort_values('competidores_5km', ascending=False).head(5)
-print("Top 5 locales con mayor superposicion:")
-print(locales_densos[['storeNumber','competidores_5km','hhi_local']])
+dense_stores = df_la.sort_values('competitors_5km', ascending=False).head(5)
+print("Top 5 stores with the highest overlap:")
+print(dense_stores[['storeNumber','competitors_5km','hhi_local']])
 print("="*60)
 
-# 4. Visualizacion espacial en mapa
-centro_lat = df_la['latitude'].mean()
-centro_lon = df_la['longitude'].mean()
-mapa_completo = folium.Map(location=[centro_lat, centro_lon], zoom_start=11)
-for index, fila in df_la.iterrows():
-    lat = fila['latitude']
-    lon = fila['longitude']
-    competidores = fila['competidores_5km']
-    hhi = fila['hhi_local']
-    #Lógica de calor: Rojo=Monopolio espacial (< 5 competidores cerca), Azul oscuro=Alta canibalización (> 40 competidores cerca)
-    if competidores <= 5:
-        color_punto = 'red'
-    elif competidores >= 40:
-        color_punto = 'darkblue'
+# 4. Spatial visualization on a map
+lat_center = df_la['latitude'].mean()
+lon_center = df_la['longitude'].mean()
+complete_map = folium.Map(location=[lat_center, lon_center], zoom_start=11)
+for index, row in df_la.iterrows():
+    lat = row['latitude']
+    lon = row['longitude']
+    competitors = row['competitors_5km']
+    hhi = row['hhi_local']
+    #Heat logic: Red = Space monopoly (< 5 competitors nearby), Dark Blue = High cannibalization (> 40 competitors nearby)
+    if competitors <= 5:
+        color_dot = 'red'
+    elif competitors >= 40:
+        color_dot = 'darkblue'
     else:
-        color_punto = 'lightblue'
-    # Dibujamos un punto para CADA local
+        color_dot = 'lightblue'
+    # Plotting a point for EACH store
     folium.CircleMarker(
         location=[lat, lon],
-        radius=5, # Tamaño del puntito
-        color=color_punto,
+        radius=5, # Dot size
+        color=color_dot,
         fill=True,
         fill_opacity=0.8,
-        popup=f"Local: {fila['storeNumber']}<br>Competidores (5km): {competidores}<br>HHI: {hhi:.0f}"
-    ).add_to(mapa_completo)
-nombre_archivo = "mapa_completo_la.html"
-ruta_completa = os.path.abspath(nombre_archivo)
-mapa_completo.save(ruta_completa)
-webbrowser.open('file://' + ruta_completa)
+        popup=f"Store: {row['storeNumber']}<br>Competitors (5km): {competitors}<br>HHI: {hhi:.0f}"
+    ).add_to(complete_map)
+file_name = "complete_map_la.html"
+full_path = os.path.abspath(file_name)
+complete_map.save(full_path)
+webbrowser.open('file://' + full_path)
