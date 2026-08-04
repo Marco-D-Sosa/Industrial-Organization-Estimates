@@ -1,9 +1,10 @@
 # Industrial Organization Estimates
 
-This repository contains a collection of Python scripts focused on empirical estimations and models applied in the field of Industrial Organization (IO). It covers fundamental topics such as demand and marginal cost estimation, elasticities, market concentration and merger analysis.
+This repository contains a collection of Python scripts focused on empirical estimations and models applied in the field of Industrial Organization (IO). It covers fundamental topics such as demand and marginal cost estimation, elasticities, market concentration, and merger analysis.
 
 ## Repository Structure
 
+*   `NEIO/`: A directory containing a small, fictitious dataset and a script to estimate and plot demand and marginal cost functions under various functional forms.
 *   `concentration.py`: Sets up and calculates standard market concentration metrics.
 *   `mergers_and_acquisitions.py`: Analysis and simulation of Mergers and Acquisitions.
 *   `network_effects.py`: Evaluates network externalities with video game sales.
