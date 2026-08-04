@@ -1,0 +1,12 @@
+pandas
+requests
+beautifulsoup4
+numpy
+scikit-learn
+folium
+kagglehub
+statsmodels
+matplotlib
+linearmodels
+wooldridge
+pyblp
