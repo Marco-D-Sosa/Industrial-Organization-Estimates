@@ -1,23 +1,17 @@
 import pandas as pd
 import numpy as np
+import pyblp
 
 
 
-# 1. Variables del modelo econometrico
-panel_reg = df.groupby(['county','category_name','vendor_name']).agg(
-    Q_liters=('sale_liters','sum'),
-    P_retail=('state_bottle_retail','mean'),
-    Cost_wholesale=('state_bottle_cost','mean')).reset_index()
-panel_reg['ln_Q'] = np.log(panel_reg['Q_liters'])
-panel_reg['ln_P'] = np.log(panel_reg['P_retail'])
-panel_reg['ln_Cost'] = np.log(panel_reg['Cost_wholesale'])
-sum_precios_mercado = panel_reg.groupby(['county','category_name'])['P_retail'].transform('sum')
-n_firmas_mercado = panel_reg.groupby(['county','category_name'])['P_retail'].transform('count')
-panel_reg['P_competidores'] = np.where(
-    n_firmas_mercado > 1, (sum_precios_mercado - panel_reg['P_retail']) / (n_firmas_mercado -1), np.nan)
-panel_modelo = panel_reg.dropna(subset=['P_competidores']).copy()
-panel_modelo['ln_P_comp'] = np.log(panel_modelo['P_competidores'])
+# 1. Preparamos el dataset
+ruta_nevo = pyblp.data.NEVO_PRODUCTS_LOCATION
+df = pd.read_csv(ruta_nevo)
 
+
+
+
+"""
 # 2. Estimacion de las elasticidades
 formula = 'ln_Q ~ 1 + ln_P_comp + C(category_name) + [ln_P ~ ln_Cost]'
 modelo_iv = IV2SLS.from_formula(formula, data=panel_modelo)
