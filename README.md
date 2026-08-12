@@ -14,7 +14,7 @@ This repository contains a collection of Python scripts focused on empirical est
 
 ## Requirements
 
-The project relies on several standard data science and econometric libraries in Python, including `pandas`, `statsmodels`, `linearmodels`, and `pyblp` (for BLP demand estimation). 
+The project relies on several standard data science and econometric libraries in Python, including `pandas`, `statsmodels`, `linearmodels`, and `pyblp`. 
 
 To install the exact dependencies, run the following command in your terminal:
 
