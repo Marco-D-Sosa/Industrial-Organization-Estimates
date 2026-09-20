@@ -16,7 +16,7 @@ By moving beyond traditional spreadsheet models (Excel/VBA), these scripts allow
 
 The project relies on standard data science and econometric libraries in Python (`pandas`, `statsmodels`, `linearmodels`, `pyblp`).
 
-* `segmented_elasticities_blp.py`: Estimates own-price elasticities by income segment with a BLP random-coefficients logit (`pyblp`), a baseline 2SLS logit, and bootstrap ranges (see the featured section above).
+* `segmented_elasticities_blp.py`: Estimates own-price elasticities by income segment with a BLP random-coefficients logit (`pyblp`), a baseline 2SLS logit, and bootstrap ranges.
 * `NEIO/`: Contains datasets and scripts to estimate and plot demand and marginal cost functions under various functional forms (the dataset is purely fictional, generated for an initial overview).
 * `concentration.py`: Evaluates market concentration using standard industry metrics (e.g., HHI).
 * `mergers_and_acquisitions.py`: Simulates M&A scenarios to project changes in market share and market structure.
