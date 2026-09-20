@@ -1,7 +1,6 @@
 pandas
-requests
-beautifulsoup4
 numpy
+scipy
 scikit-learn
 folium
 kagglehub
